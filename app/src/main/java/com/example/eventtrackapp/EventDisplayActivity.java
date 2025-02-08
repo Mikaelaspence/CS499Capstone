@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.eventtrackapp.controller.EventController;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class EventDisplayActivity extends AppCompatActivity {
@@ -24,7 +25,8 @@ public class EventDisplayActivity extends AppCompatActivity {
     private Button addEventButton, searchButton, filterButton, logoutButton;
     private EditText searchEventInput, startDateInput, endDateInput;
     private EventController eventController;
-    private ArrayList<String> eventList;
+    private HashMap<Integer, String> eventCache; // Replaces ArrayList
+    private List<String> eventList; // For adapter display
     private ArrayAdapter<String> adapter;
 
     @Override
@@ -42,24 +44,30 @@ public class EventDisplayActivity extends AppCompatActivity {
         filterButton = findViewById(R.id.filter_button);
 
         eventController = new EventController(this);
-        eventList = new ArrayList<>();
+        eventCache = eventController.getEventCache(); // Fetch cached events
+        eventList = new ArrayList<>(eventCache.values()); // Convert HashMap values to List for adapter
 
-        // Initialize adapter before calling loadEventData
+        // Initialize adapter
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, eventList);
         gridView.setAdapter(adapter);
 
-        loadEventData();  // Ensure adapter is set before updating data
+        loadEventData();
 
         addEventButton.setOnClickListener(v -> showEventDialog(null, -1));
         searchButton.setOnClickListener(v -> searchEvent());
         filterButton.setOnClickListener(v -> filterEvents());
 
-        gridView.setOnItemClickListener((parent, view, position, id) -> showEventDialog(eventList.get(position), position));
+        gridView.setOnItemClickListener((parent, view, position, id) -> {
+            int eventId = (int) adapter.getItemId(position);
+            showEventDialog(eventCache.get(eventId), eventId);
+        });
     }
 
+    // Load event data from the cache
     private void loadEventData() {
+        eventCache = eventController.getEventCache();
         eventList.clear();
-        eventList.addAll(eventController.getAllEvents());
+        eventList.addAll(eventCache.values());
 
         if (eventList.isEmpty()) {
             Log.d("EVENTS", "⚠️ No events found, list is empty.");
@@ -67,7 +75,6 @@ public class EventDisplayActivity extends AppCompatActivity {
             Log.d("EVENTS", "✅ Events loaded: " + eventList.size());
         }
 
-        // Ensure adapter is not null before updating UI
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         } else {
@@ -75,6 +82,7 @@ public class EventDisplayActivity extends AppCompatActivity {
         }
     }
 
+    // Search event by name in HashMap
     private void searchEvent() {
         String query = searchEventInput.getText().toString().trim();
         if (query.isEmpty()) {
@@ -82,7 +90,13 @@ public class EventDisplayActivity extends AppCompatActivity {
             return;
         }
 
-        List<String> results = eventController.searchEventByName(query);
+        List<String> results = new ArrayList<>();
+        for (String event : eventCache.values()) {
+            if (event.toLowerCase().contains(query.toLowerCase())) {
+                results.add(event);
+            }
+        }
+
         if (results.isEmpty()) {
             Toast.makeText(this, "No events found", Toast.LENGTH_SHORT).show();
         } else {
@@ -94,6 +108,7 @@ public class EventDisplayActivity extends AppCompatActivity {
         }
     }
 
+    // Filter events by date range
     private void filterEvents() {
         String startDate = startDateInput.getText().toString().trim();
         String endDate = endDateInput.getText().toString().trim();
@@ -126,7 +141,7 @@ public class EventDisplayActivity extends AppCompatActivity {
         finish();
     }
 
-    private void showEventDialog(String eventData, int position) {
+    private void showEventDialog(String eventData, int eventId) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(eventData == null ? "Add Event" : "Edit Event");
 
@@ -134,16 +149,13 @@ public class EventDisplayActivity extends AppCompatActivity {
         EditText inputName = viewInflated.findViewById(R.id.input_event_name);
         EditText inputDate = viewInflated.findViewById(R.id.input_event_date);
 
-        int eventId = -1;
         if (eventData != null) {
             String[] parts = eventData.split(" - ");
             inputName.setText(parts[0]);
             inputDate.setText(parts[1]);
-            eventId = eventController.getEventIdByPosition(position);
         }
 
         builder.setView(viewInflated);
-        final int finalEventId = eventId;
 
         builder.setPositiveButton(eventData == null ? "Add" : "Update", (dialog, which) -> {
             String eventName = inputName.getText().toString();
@@ -158,7 +170,7 @@ public class EventDisplayActivity extends AppCompatActivity {
                     Toast.makeText(EventDisplayActivity.this, "Failed to add event", Toast.LENGTH_SHORT).show();
                 }
             } else {
-                if (eventController.updateEvent(finalEventId, eventName, eventDate)) {
+                if (eventController.updateEvent(eventId, eventName, eventDate)) {
                     Toast.makeText(EventDisplayActivity.this, "Event updated", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(EventDisplayActivity.this, "Failed to update event", Toast.LENGTH_SHORT).show();
@@ -169,7 +181,7 @@ public class EventDisplayActivity extends AppCompatActivity {
 
         builder.setNegativeButton(eventData == null ? "Cancel" : "Delete", (dialog, which) -> {
             if (eventData != null) {
-                if (eventController.deleteEvent(finalEventId)) {
+                if (eventController.deleteEvent(eventId)) {
                     Toast.makeText(EventDisplayActivity.this, "Event deleted", Toast.LENGTH_SHORT).show();
                     loadEventData();
                 } else {

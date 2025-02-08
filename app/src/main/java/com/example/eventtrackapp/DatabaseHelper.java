@@ -6,18 +6,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import java.util.ArrayList;
-
-
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -34,7 +25,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_USERNAME = "username";
     private static final String COLUMN_PASSWORD = "password";
 
-    private HashMap<Integer, String> eventCache; // HashMap for faster lookups
+    private HashMap<Integer, String> eventCache;  // HashMap for fast lookup
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -66,10 +57,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private void loadEventCache() {
         eventCache.clear();
-        List<String> events = getAllEvents();
-        for (int i = 0; i < events.size(); i++) {
-            eventCache.put(i, events.get(i));
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT " + COLUMN_EVENT_ID + ", " + COLUMN_EVENT_NAME + ", " + COLUMN_EVENT_DATE + " FROM " + TABLE_EVENTS;
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                int eventId = cursor.getInt(0);
+                String eventName = cursor.getString(1);
+                String eventDate = cursor.getString(2);
+                eventCache.put(eventId, eventName + " - " + eventDate);
+            } while (cursor.moveToNext());
         }
+        cursor.close();
+        db.close();
     }
 
     public boolean addUser(String username, String password) {
@@ -93,7 +94,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
 
         if (result != -1) {
-            loadEventCache(); // Refresh cache after adding an event
+            loadEventCache(); // Refresh cache after adding
         }
 
         return result != -1;
@@ -109,7 +110,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
 
         if (result > 0) {
-            loadEventCache(); // Refresh cache after updating an event
+            loadEventCache(); // Refresh cache after updating
         }
 
         return result > 0;
@@ -121,24 +122,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
 
         if (result > 0) {
-            loadEventCache(); // Refresh cache after deleting an event
+            loadEventCache(); // Refresh cache after deletion
         }
 
         return result > 0;
     }
 
-    public int getEventIdByPosition(int position) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT " + COLUMN_EVENT_ID + " FROM " + TABLE_EVENTS + " LIMIT 1 OFFSET " + position;
-        Cursor cursor = db.rawQuery(query, null);
-
-        int eventId = -1;
-        if (cursor.moveToFirst()) {
-            eventId = cursor.getInt(0);
-        }
-        cursor.close();
-        db.close();
-        return eventId;
+    public HashMap<Integer, String> getEventCache() {
+        return eventCache;
     }
 
     public boolean checkUser(String username, String password) {
@@ -151,24 +142,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return exists;
     }
 
-    public ArrayList<String> getAllEvents() {
-        ArrayList<String> events = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT " + COLUMN_EVENT_NAME + ", " + COLUMN_EVENT_DATE + " FROM " + TABLE_EVENTS;
-        Cursor cursor = db.rawQuery(query, null);
-
-        if (cursor.moveToFirst()) {
-            do {
-                String eventName = cursor.getString(0);
-                String eventDate = cursor.getString(1);
-                events.add(eventName + " - " + eventDate);
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-        db.close();
-        return events;
-    }
-
+    // 🔹 Search events by name (now uses the HashMap)
     public List<String> searchEventByName(String eventName) {
         List<String> matchingEvents = new ArrayList<>();
         for (String event : eventCache.values()) {
@@ -179,8 +153,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return matchingEvents;
     }
 
+    // 🔹 Search events by date range
     public List<String> getEventsByDateRange(String startDate, String endDate) {
-        List<String> events = new ArrayList<>();
+        List<String> filteredEvents = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
         String query = "SELECT " + COLUMN_EVENT_NAME + ", " + COLUMN_EVENT_DATE +
@@ -193,12 +168,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             do {
                 String eventName = cursor.getString(0);
                 String eventDate = cursor.getString(1);
-                events.add(eventName + " - " + eventDate);
+                filteredEvents.add(eventName + " - " + eventDate);
             } while (cursor.moveToNext());
         }
 
         cursor.close();
         db.close();
-        return events;
+        return filteredEvents;
+    }
+
+    // 🔹 Get event ID by position
+    public int getEventIdByPosition(int position) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT " + COLUMN_EVENT_ID + " FROM " + TABLE_EVENTS + " LIMIT 1 OFFSET " + position;
+        Cursor cursor = db.rawQuery(query, null);
+
+        int eventId = -1;
+        if (cursor.moveToFirst()) {
+            eventId = cursor.getInt(0);
+        }
+        cursor.close();
+        db.close();
+        return eventId;
     }
 }
