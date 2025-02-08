@@ -27,12 +27,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private HashMap<Integer, String> eventCache;  // HashMap for fast lookup
 
+    //Constructor to initialize database helper and load event cache
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         eventCache = new HashMap<>();
         loadEventCache();
     }
 
+    //Creating database table
     @Override
     public void onCreate(SQLiteDatabase db) {
         String CREATE_USERS_TABLE = "CREATE TABLE " + TABLE_USERS + " (" +
@@ -48,6 +50,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_EVENTS_TABLE);
     }
 
+    //Upgrading database to recreate tables
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
@@ -55,6 +58,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    //Load events into cache for fast lookups
     private void loadEventCache() {
         eventCache.clear();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -73,6 +77,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    //Adding a username and password to database
     public boolean addUser(String username, String password) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -84,6 +89,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result != -1;
     }
 
+    //Adding new event
     public boolean addEvent(String eventName, String eventDate) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -100,6 +106,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result != -1;
     }
 
+    //Updating event and reloading cache
     public boolean updateEvent(int eventId, String eventName, String eventDate) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -110,28 +117,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
 
         if (result > 0) {
-            loadEventCache(); // Refresh cache after updating
+            loadEventCache();
         }
 
         return result > 0;
     }
 
+    //Deleting event and refreshing cache
     public boolean deleteEvent(int eventId) {
         SQLiteDatabase db = this.getWritableDatabase();
         int result = db.delete(TABLE_EVENTS, COLUMN_EVENT_ID + "=?", new String[]{String.valueOf(eventId)});
         db.close();
 
         if (result > 0) {
-            loadEventCache(); // Refresh cache after deletion
+            loadEventCache();
         }
 
         return result > 0;
     }
 
+    //Retrieves cache and returns a hashmap of events
     public HashMap<Integer, String> getEventCache() {
         return eventCache;
     }
 
+    //Checking if a user is in database
     public boolean checkUser(String username, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT * FROM " + TABLE_USERS + " WHERE " + COLUMN_USERNAME + " = ? AND " + COLUMN_PASSWORD + " = ?";
@@ -142,7 +152,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return exists;
     }
 
-    // 🔹 Search events by name (now uses the HashMap)
+    //Search events by name
     public List<String> searchEventByName(String eventName) {
         List<String> matchingEvents = new ArrayList<>();
         for (String event : eventCache.values()) {
@@ -153,7 +163,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return matchingEvents;
     }
 
-    // 🔹 Search events by date range
+    //Search events by date range
     public List<String> getEventsByDateRange(String startDate, String endDate) {
         List<String> filteredEvents = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -177,7 +187,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return filteredEvents;
     }
 
-    // 🔹 Get event ID by position
+    //Get event ID by position
     public int getEventIdByPosition(int position) {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT " + COLUMN_EVENT_ID + " FROM " + TABLE_EVENTS + " LIMIT 1 OFFSET " + position;

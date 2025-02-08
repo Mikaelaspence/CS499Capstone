@@ -26,7 +26,7 @@ public class EventDisplayActivity extends AppCompatActivity {
     private EditText searchEventInput, startDateInput, endDateInput;
     private EventController eventController;
     private HashMap<Integer, String> eventCache; // Replaces ArrayList
-    private List<String> eventList; // For adapter display
+    private List<String> eventList;
     private ArrayAdapter<String> adapter;
 
     @Override
@@ -43,7 +43,10 @@ public class EventDisplayActivity extends AppCompatActivity {
         searchButton = findViewById(R.id.search_button);
         filterButton = findViewById(R.id.filter_button);
 
+        //Initialize event controller to interact with databse
         eventController = new EventController(this);
+
+        //Load event cache from database
         eventCache = eventController.getEventCache(); // Fetch cached events
         eventList = new ArrayList<>(eventCache.values()); // Convert HashMap values to List for adapter
 
@@ -51,8 +54,10 @@ public class EventDisplayActivity extends AppCompatActivity {
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, eventList);
         gridView.setAdapter(adapter);
 
+        //Load events into the display
         loadEventData();
 
+        //Set up button listeners for actions
         addEventButton.setOnClickListener(v -> showEventDialog(null, -1));
         searchButton.setOnClickListener(v -> searchEvent());
         filterButton.setOnClickListener(v -> filterEvents());
@@ -63,18 +68,20 @@ public class EventDisplayActivity extends AppCompatActivity {
         });
     }
 
-    // Load event data from the cache
+    // Load event data from the cache and update UI
     private void loadEventData() {
         eventCache = eventController.getEventCache();
         eventList.clear();
         eventList.addAll(eventCache.values());
 
+        //Logging for debugging
         if (eventList.isEmpty()) {
             Log.d("EVENTS", "⚠️ No events found, list is empty.");
         } else {
             Log.d("EVENTS", "✅ Events loaded: " + eventList.size());
         }
 
+        //Refresh adapter to update UI
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         } else {
@@ -82,7 +89,7 @@ public class EventDisplayActivity extends AppCompatActivity {
         }
     }
 
-    // Search event by name in HashMap
+    // Search event by name
     private void searchEvent() {
         String query = searchEventInput.getText().toString().trim();
         if (query.isEmpty()) {
@@ -130,6 +137,7 @@ public class EventDisplayActivity extends AppCompatActivity {
         }
     }
 
+    //Logout and return to login screen
     private void logout() {
         getSharedPreferences("UserSession", MODE_PRIVATE)
                 .edit()
@@ -141,6 +149,7 @@ public class EventDisplayActivity extends AppCompatActivity {
         finish();
     }
 
+    //Displays dialog for adding or editing events
     private void showEventDialog(String eventData, int eventId) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(eventData == null ? "Add Event" : "Edit Event");
@@ -162,6 +171,7 @@ public class EventDisplayActivity extends AppCompatActivity {
             String eventDate = inputDate.getText().toString();
 
             if (eventData == null) {
+                //Adding new event
                 if (eventController.addEvent(eventName, eventDate)) {
                     Toast.makeText(EventDisplayActivity.this, "Event added", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(EventDisplayActivity.this, SMSNotificationsActivity.class);
@@ -170,15 +180,19 @@ public class EventDisplayActivity extends AppCompatActivity {
                     Toast.makeText(EventDisplayActivity.this, "Failed to add event", Toast.LENGTH_SHORT).show();
                 }
             } else {
+                //Update existing event
                 if (eventController.updateEvent(eventId, eventName, eventDate)) {
                     Toast.makeText(EventDisplayActivity.this, "Event updated", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(EventDisplayActivity.this, "Failed to update event", Toast.LENGTH_SHORT).show();
                 }
             }
+
+            //Refresh event data
             loadEventData();
         });
 
+        //Cancel or delete
         builder.setNegativeButton(eventData == null ? "Cancel" : "Delete", (dialog, which) -> {
             if (eventData != null) {
                 if (eventController.deleteEvent(eventId)) {
