@@ -1,0 +1,98 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".EventDisplayActivity">
+
+    <!-- Title Header -->
+    <TextView
+        android:id="@+id/event_list_header"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Upcoming Events"
+        android:textSize="20sp"
+        android:layout_marginTop="20dp"
+        android:layout_centerHorizontal="true" />
+
+    <!-- Search Event Input -->
+    <EditText
+        android:id="@+id/search_event_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search event by name"
+        android:padding="12dp"
+        android:minHeight="48dp"
+        android:layout_below="@id/event_list_header"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp" />
+
+    <!-- Search Button -->
+    <Button
+        android:id="@+id/search_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Search"
+        android:layout_below="@id/search_event_input"
+        android:layout_marginTop="10dp"
+        android:layout_centerHorizontal="true" />
+
+    <!-- Start Date Input -->
+    <EditText
+        android:id="@+id/start_date_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Start Date (YYYY-MM-DD)"
+        android:padding="12dp"
+        android:minHeight="48dp"
+        android:layout_below="@id/search_button"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp" />
+
+    <!-- End Date Input -->
+    <EditText
+        android:id="@+id/end_date_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="End Date (YYYY-MM-DD)"
+        android:padding="12dp"
+        android:minHeight="48dp"
+        android:layout_below="@id/start_date_input"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp" />
+
+    <!-- Filter by Date Button -->
+    <Button
+        android:id="@+id/filter_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Filter by Date Range"
+        android:layout_below="@id/end_date_input"
+        android:layout_marginTop="10dp"
+        android:layout_centerHorizontal="true" />
+
+    <!-- Event Grid (Displays Events) -->
+    <GridView
+        android:id="@+id/event_grid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/filter_button"
+        android:layout_marginTop="20dp"
+        android:numColumns="2"
+        android:verticalSpacing="20dp"
+        android:horizontalSpacing="20dp"
+        android:padding="10dp" />
+
+    <!-- Add Event Button -->
+    <Button
+        android:id="@+id/add_event_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add Event"
+        android:layout_below="@id/event_grid"
+        android:layout_marginTop="20dp"
+        android:layout_centerHorizontal="true" />
+
+</RelativeLayout>

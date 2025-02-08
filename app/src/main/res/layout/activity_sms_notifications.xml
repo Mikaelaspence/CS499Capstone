@@ -1,0 +1,25 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SMSNotificationsActivity">
+
+    <TextView
+        android:id="@+id/sms_permission_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Permission Status: Unknown"
+        android:textSize="20sp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40dp" />
+
+    <Button
+        android:id="@+id/request_sms_permission_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enable SMS Notifications"
+        android:layout_below="@id/sms_permission_status"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp" />
+
+</RelativeLayout>
