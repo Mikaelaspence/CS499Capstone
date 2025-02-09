@@ -12,6 +12,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.FirebaseApp;
+
 public class MainActivity extends AppCompatActivity {
 
     private EditText usernameEditText;
@@ -24,6 +26,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Initialize Firebase
+        FirebaseApp.initializeApp(this);
+        Log.d("Firebase", "🔥 Firebase Initialized Successfully!");
 
         // Initialize views
         usernameEditText = findViewById(R.id.username);
@@ -57,16 +63,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Use the database helper to check if the user exists
         if (databaseHelper.checkUser(username, password)) {
-
-            // If login is successful, navigate to the Event Display Screen
             Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
-            Log.d("LOGIN", "User credentials are valid. Redirecting to EventDisplayActivity.");
+            Log.d("LOGIN", "✅ User credentials are valid. Redirecting to EventDisplayActivity.");
             Intent intent = new Intent(MainActivity.this, EventDisplayActivity.class);
             startActivity(intent);
-
-            //finish();  // Close the MainActivity to prevent returning to the login screen
         } else {
-            Log.d("LOGIN", "Invalid login credentials.");
+            Log.d("LOGIN", "❌ Invalid login credentials.");
             Toast.makeText(this, "Invalid login credentials", Toast.LENGTH_SHORT).show();
         }
     }

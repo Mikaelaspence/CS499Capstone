@@ -8,41 +8,40 @@ import java.util.List;
 
 public class EventController {
 
-    //Database helper instance for interacting with the database
+    // Database helper instance for interacting with the database
     private DatabaseHelper dbHelper;
 
     public EventController(Context context) {
         dbHelper = new DatabaseHelper(context);
     }
 
-    //Retrieves cached list of events from database
+    // ✅ Fetch cached list of events from database & sync with Firestore
     public HashMap<Integer, String> getEventCache() {
+        dbHelper.syncWithFirebase();  // Ensure Firestore syncs data
         return dbHelper.getEventCache();
     }
 
-    //Add event
+    // ✅ Add a new event (Local + Firestore)
     public boolean addEvent(String eventName, String eventDate) {
         return dbHelper.addEvent(eventName, eventDate);
     }
 
-
-    //Update event
+    // ✅ Update an existing event (Local + Firestore)
     public boolean updateEvent(int eventId, String eventName, String eventDate) {
         return dbHelper.updateEvent(eventId, eventName, eventDate);
     }
 
-
-    //Delete event
+    // ✅ Delete an event from SQLite & Firestore
     public boolean deleteEvent(int eventId) {
         return dbHelper.deleteEvent(eventId);
     }
 
-    //Filtering by date
+    // ✅ Filter events by date range
     public List<String> filterEventsByDateRange(String startDate, String endDate) {
         return dbHelper.getEventsByDateRange(startDate, endDate);
     }
 
-    //Event retrieved by position
+    // ✅ Retrieve an event ID based on its position in the list
     public int getEventIdByPosition(int position) {
         return dbHelper.getEventIdByPosition(position);
     }

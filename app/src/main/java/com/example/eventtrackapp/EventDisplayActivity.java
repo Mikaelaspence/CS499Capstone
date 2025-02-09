@@ -63,9 +63,13 @@ public class EventDisplayActivity extends AppCompatActivity {
         filterButton.setOnClickListener(v -> filterEvents());
 
         gridView.setOnItemClickListener((parent, view, position, id) -> {
-            int eventId = (int) adapter.getItemId(position);
+            // Correctly retrieve the event ID from cache
+            int eventId = (int) eventCache.keySet().toArray()[position];
+
+            // Open the event dialog with correct data
             showEventDialog(eventCache.get(eventId), eventId);
         });
+
     }
 
     // Load event data from the cache and update UI
